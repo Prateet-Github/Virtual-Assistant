@@ -7,9 +7,9 @@ const App = () => {
   const { toggleRecognition, isListening, isSpeaking, loading } =
     useContext(dataContext);
 
-  let displayImage = "/src/assets/friday.jpg";
-  if (isListening) displayImage = "/src/assets/aiVoice.gif";
-  if (isSpeaking) displayImage = "/src/assets/speak.gif";
+  let displayImage = "/friday.jpg";
+  if (isListening) displayImage = "/aiVoice.gif";
+  if (isSpeaking) displayImage = "/speak.gif";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-900 to-slate-900 flex flex-col justify-center items-center overflow-hidden relative">
@@ -37,10 +37,10 @@ const App = () => {
             }}
           />
         ))}
-        
+
         {/* Grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(245,158,11,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(245,158,11,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
-        
+
         {/* Gradient orbs */}
         <motion.div
           className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
@@ -79,7 +79,7 @@ const App = () => {
             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             style={{ filter: "blur(1px)" }}
           />
-          
+
           {/* Middle ring */}
           <motion.div
             className="absolute inset-4 border border-amber-400 rounded-full opacity-50"
@@ -92,11 +92,15 @@ const App = () => {
             className="absolute inset-8 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full opacity-20 blur-md"
             animate={{
               scale: isListening ? [1, 1.3, 1] : isSpeaking ? [1, 1.2, 1] : 1,
-              opacity: isListening ? [0.2, 0.6, 0.2] : isSpeaking ? [0.2, 0.8, 0.2] : 0.2,
+              opacity: isListening
+                ? [0.2, 0.6, 0.2]
+                : isSpeaking
+                ? [0.2, 0.8, 0.2]
+                : 0.2,
             }}
             transition={{
               duration: 1.5,
-              repeat: (isListening || isSpeaking) ? Infinity : 0,
+              repeat: isListening || isSpeaking ? Infinity : 0,
               ease: "easeInOut",
             }}
           />
@@ -115,7 +119,7 @@ const App = () => {
                 ease: "easeOut",
               }}
             />
-            
+
             {/* Holographic overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-transparent via-orange-500/10 to-transparent animate-pulse" />
           </motion.div>
@@ -211,7 +215,7 @@ const App = () => {
                 repeat: isListening ? Infinity : 0,
               }}
             />
-            
+
             {/* Main button */}
             <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-slate-800 to-slate-700 border-2 border-orange-500 flex items-center justify-center shadow-2xl shadow-orange-500/30 group-hover:shadow-orange-500/50 transition-all duration-300">
               <motion.div
@@ -287,7 +291,9 @@ const App = () => {
                     />
                   ))}
                 </motion.div>
-                <span className="text-amber-400 font-medium tracking-wide">Processing...</span>
+                <span className="text-amber-400 font-medium tracking-wide">
+                  Processing...
+                </span>
               </motion.div>
             )}
 
