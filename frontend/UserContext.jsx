@@ -1,29 +1,48 @@
-import { createContext, useRef, useState } from "react";
+import { createContext, useRef, useState, useEffect } from "react";
+import { API } from "./helper/api.js";
 
 export const dataContext = createContext();
 
 const UserContext = ({ children }) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // speech Synthesis 
-  function speak(text) {
+  // Text-to-speech
+  const speak = (text) => {
     setIsSpeaking(true);
-
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
     utterance.pitch = 1;
     utterance.rate = 1;
     utterance.volume = 1;
 
-    // cancel old speech before new
     speechSynthesis.cancel();
     speechSynthesis.speak(utterance);
 
     utterance.onend = () => setIsSpeaking(false);
-  }
+  };
 
-  //  Speech Recognition
+  // Keyboard event listener for spacebar
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (
+        event.code === "Space" &&
+        event.target.tagName !== "INPUT" &&
+        event.target.tagName !== "TEXTAREA"
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleRecognition();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isListening]); // Add isListening as dependency
+
+  // recognition ref
   const recognitionRef = useRef(null);
 
   if (!recognitionRef.current) {
@@ -35,32 +54,49 @@ const UserContext = ({ children }) => {
     recognitionRef.current.interimResults = false;
     recognitionRef.current.maxAlternatives = 1;
 
+    // onresult moved here
+    recognitionRef.current.onresult = async (event) => {
+      const last = event.results.length - 1;
+      const command = event.results[last][0].transcript;
+      console.log("Voice Input:", command);
+
+      setLoading(true);
+      try {
+        const data = await API(command);
+        console.log("AI Response:", data.answer);
+        speak(data.answer);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     recognitionRef.current.onend = () => {
       setIsListening(false);
       console.log("Recognition ended");
     };
   }
 
-  const recognition = recognitionRef.current;
-
-  function toggleRecognition() {
+  const toggleRecognition = () => {
     if (!isListening) {
-      recognition.start();
+      recognitionRef.current.start();
       setIsListening(true);
       console.log("🎤 Listening started...");
     } else {
-      recognition.stop();
+      recognitionRef.current.stop();
       setIsListening(false);
       console.log("Listening stopped...");
     }
-  }
+  };
 
   const value = {
-    speak,          
+    speak,
+    recognition: recognitionRef.current,
     toggleRecognition,
-    recognition,
     isListening,
     isSpeaking,
+    loading,
   };
 
   return <dataContext.Provider value={value}>{children}</dataContext.Provider>;
